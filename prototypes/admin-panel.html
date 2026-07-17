@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VENA — админ-панель</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,500;0,9..144,600&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0B1410;--bg-2:#0F1B16;--panel:#13241D;--panel-2:#172E25;
+    --ink:#F2EFE8;--ink-soft:#A8B5AD;--ink-dim:#6E7C73;
+    --gold:#C9A86A;--gold-bright:#E3C78D;
+    --line:rgba(201,168,106,0.18);--line-soft:rgba(242,239,232,0.08);
+    --pos:#7FB88A;--neg:#C97A6A;--warn:#D9B470;--info:#7AA8C9;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--ink);line-height:1.5;-webkit-font-smoothing:antialiased;}
+  h1,h2,h3,.serif{font-family:'Fraunces',serif;font-weight:400;}
+  a{color:inherit;text-decoration:none;}
+
+  .layout{display:flex;min-height:100vh;}
+
+  /* sidebar */
+  .sidebar{width:230px;flex-shrink:0;background:var(--bg-2);border-right:1px solid var(--line-soft);display:flex;flex-direction:column;position:fixed;top:0;bottom:0;left:0;}
+  .sb-logo{padding:24px 24px;font-family:'Fraunces',serif;font-size:20px;letter-spacing:0.22em;border-bottom:1px solid var(--line-soft);}
+  .sb-logo b{color:var(--gold);}
+  .sb-logo span{display:block;font-family:'Inter';font-size:10px;letter-spacing:0.14em;color:var(--ink-dim);margin-top:4px;text-transform:uppercase;}
+  .sb-nav{flex-grow:1;padding:16px 12px;}
+  .sb-item{display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:10px;font-size:14px;color:var(--ink-soft);cursor:pointer;transition:all .2s;margin-bottom:2px;}
+  .sb-item:hover{background:var(--panel);color:var(--ink);}
+  .sb-item.active{background:rgba(201,168,106,0.1);color:var(--gold-bright);}
+  .sb-item .ic{font-size:16px;width:20px;text-align:center;}
+  .sb-item .badge{margin-left:auto;background:var(--gold);color:var(--bg);font-size:11px;font-weight:600;padding:1px 8px;border-radius:999px;}
+  .sb-user{padding:16px 20px;border-top:1px solid var(--line-soft);display:flex;align-items:center;gap:12px;}
+  .sb-user-av{width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,#2a4a3c,#1a2e24);display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0;border:1px solid var(--line);}
+  .sb-user-info b{display:block;font-size:13px;font-weight:500;}
+  .sb-user-info span{font-size:11px;color:var(--ink-dim);}
+
+  /* main */
+  .main{margin-left:230px;flex-grow:1;padding:28px 36px 60px;width:calc(100% - 230px);}
+  .topbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:32px;}
+  .topbar h1{font-size:26px;font-weight:300;}
+  .topbar h1 em{font-style:italic;color:var(--gold-bright);}
+  .topbar-actions{display:flex;gap:12px;align-items:center;}
+  .search{background:var(--panel);border:1px solid var(--line-soft);border-radius:10px;padding:9px 16px;font-size:13px;color:var(--ink);width:220px;font-family:'Inter';}
+  .search::placeholder{color:var(--ink-dim);}
+  .date-pill{font-size:13px;color:var(--ink-soft);padding:9px 16px;border:1px solid var(--line-soft);border-radius:10px;}
+
+  .view{display:none;}
+  .view.active{display:block;animation:fade .4s ease;}
+  @keyframes fade{from{opacity:0;transform:translateY(8px);}to{opacity:1;}}
+
+  /* KPI cards */
+  .kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:18px;margin-bottom:28px;}
+  @media(max-width:1100px){.kpis{grid-template-columns:repeat(2,1fr);}}
+  .kpi{background:var(--panel);border:1px solid var(--line-soft);border-radius:16px;padding:22px 24px;}
+  .kpi-label{font-size:12px;color:var(--ink-soft);margin-bottom:10px;}
+  .kpi-val{font-family:'Fraunces',serif;font-size:30px;color:var(--ink);line-height:1;margin-bottom:8px;}
+  .kpi-delta{font-size:12px;}
+  .kpi-delta.up{color:var(--pos);}
+  .kpi-delta.down{color:var(--neg);}
+
+  .grid2{display:grid;grid-template-columns:1.5fr 1fr;gap:18px;}
+  @media(max-width:1000px){.grid2{grid-template-columns:1fr;}}
+  .panel{background:var(--panel);border:1px solid var(--line-soft);border-radius:16px;padding:24px;margin-bottom:18px;}
+  .panel-hd{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;}
+  .panel-hd h3{font-size:16px;font-weight:500;}
+  .panel-hd .eyebrow{font-size:11px;letter-spacing:0.1em;text-transform:uppercase;color:var(--gold);}
+  .link{font-size:12.5px;color:var(--gold);cursor:pointer;}
+  .link:hover{opacity:0.7;}
+
+  /* tables */
+  table{width:100%;border-collapse:collapse;}
+  th{font-size:11px;letter-spacing:0.06em;text-transform:uppercase;color:var(--gold);font-weight:600;text-align:left;padding:12px 14px;border-bottom:1px solid var(--line-soft);}
+  td{padding:14px 14px;border-bottom:1px solid var(--line-soft);font-size:13.5px;}
+  tr:last-child td{border-bottom:none;}
+  tbody tr{transition:background .2s;}
+  tbody tr:hover{background:rgba(201,168,106,0.03);}
+  .cell-strong{font-weight:500;color:var(--ink);}
+  .cell-sub{font-size:12px;color:var(--ink-dim);}
+
+  .badge-s{font-size:11px;padding:4px 10px;border-radius:999px;white-space:nowrap;display:inline-block;}
+  .b-new{background:rgba(122,168,201,0.14);color:var(--info);}
+  .b-confirmed{background:rgba(201,168,106,0.14);color:var(--gold);}
+  .b-assigned{background:rgba(127,184,138,0.14);color:var(--pos);}
+  .b-done{background:rgba(168,181,173,0.1);color:var(--ink-soft);}
+  .b-pending{background:rgba(217,180,112,0.14);color:var(--warn);}
+  .b-active{background:rgba(127,184,138,0.14);color:var(--pos);}
+  .b-busy{background:rgba(201,122,106,0.14);color:var(--neg);}
+
+  .btn-sm{font-size:12px;padding:7px 14px;border-radius:8px;border:1px solid var(--line);background:transparent;color:var(--ink);cursor:pointer;transition:all .2s;font-family:'Inter';}
+  .btn-sm:hover{border-color:var(--gold);}
+  .btn-sm.gold{background:var(--gold);color:var(--bg);border-color:var(--gold);font-weight:500;}
+  .btn-sm.gold:hover{background:var(--gold-bright);}
+
+  /* activity feed */
+  .feed-item{display:flex;gap:12px;padding:12px 0;border-bottom:1px solid var(--line-soft);}
+  .feed-item:last-child{border-bottom:none;}
+  .feed-dot{width:8px;height:8px;border-radius:50%;margin-top:6px;flex-shrink:0;}
+  .feed-dot.gold{background:var(--gold);}
+  .feed-dot.pos{background:var(--pos);}
+  .feed-dot.info{background:var(--info);}
+  .feed-body p{font-size:13px;color:var(--ink);}
+  .feed-body span{font-size:11.5px;color:var(--ink-dim);}
+
+  /* schedule */
+  .sched-item{display:flex;align-items:center;gap:14px;padding:12px 0;border-bottom:1px solid var(--line-soft);}
+  .sched-item:last-child{border-bottom:none;}
+  .sched-time{font-family:'Fraunces',serif;font-size:15px;color:var(--gold-bright);width:48px;flex-shrink:0;}
+  .sched-body{flex-grow:1;}
+  .sched-body h4{font-size:13.5px;font-weight:500;}
+  .sched-body p{font-size:12px;color:var(--ink-dim);}
+
+  /* brigades */
+  .brig-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:18px;}
+  @media(max-width:1000px){.brig-grid{grid-template-columns:1fr;}}
+  .nurse{display:flex;align-items:center;gap:14px;padding:14px 0;border-bottom:1px solid var(--line-soft);}
+  .nurse:last-child{border-bottom:none;}
+  .nurse-av{width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,#2a4a3c,#1a2e24);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;border:1px solid var(--line);}
+  .nurse-info{flex-grow:1;}
+  .nurse-info h4{font-size:14px;font-weight:500;}
+  .nurse-info p{font-size:12px;color:var(--ink-dim);}
+
+  /* analysis verify */
+  .verify-split{display:grid;grid-template-columns:1fr 1fr;gap:24px;}
+  @media(max-width:900px){.verify-split{grid-template-columns:1fr;}}
+  .verify-pdf{background:var(--bg-2);border:1px solid var(--line-soft);border-radius:12px;padding:24px;min-height:360px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;}
+  .verify-pdf-ic{font-size:40px;margin-bottom:14px;opacity:0.6;}
+  .verify-pdf p{font-size:13px;color:var(--ink-soft);}
+  .verify-pdf .fname{font-size:13px;color:var(--gold-bright);margin-top:8px;}
+  .vrow{display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--line-soft);}
+  .vrow:last-of-type{border-bottom:none;}
+  .vrow-name{flex-grow:1;font-size:13.5px;}
+  .vrow-name span{font-size:11.5px;color:var(--ink-dim);display:block;}
+  .vrow input{width:80px;background:var(--bg-2);border:1px solid var(--line-soft);border-radius:8px;padding:8px 10px;color:var(--ink);font-family:'Fraunces',serif;font-size:15px;text-align:center;}
+  .vrow input:focus{outline:none;border-color:var(--gold);}
+  .vrow-status{font-size:11px;padding:3px 9px;border-radius:999px;}
+
+  .modal-bg{position:fixed;inset:0;background:rgba(5,9,7,0.8);backdrop-filter:blur(6px);z-index:200;display:none;align-items:flex-start;justify-content:center;padding:40px 20px;overflow-y:auto;}
+  .modal-bg.show{display:flex;}
+  .modal{background:var(--panel);border:1px solid var(--line);border-radius:20px;max-width:880px;width:100%;padding:32px;position:relative;}
+  .modal-close{position:absolute;top:20px;right:22px;width:36px;height:36px;border-radius:50%;border:1px solid var(--line-soft);background:transparent;color:var(--ink);font-size:18px;cursor:pointer;}
+  .modal h2{font-size:22px;font-weight:400;margin-bottom:4px;}
+  .modal-sub{font-size:13px;color:var(--ink-soft);margin-bottom:24px;}
+
+  .toast{position:fixed;bottom:24px;right:24px;z-index:300;background:var(--panel-2);border:1px solid var(--gold);border-radius:12px;padding:14px 20px;display:flex;align-items:center;gap:12px;transform:translateY(120px);transition:transform .5s cubic-bezier(.22,1,.36,1);box-shadow:0 18px 50px -12px rgba(0,0,0,0.6);}
+  .toast.show{transform:translateY(0);}
+  .toast-ic{width:32px;height:32px;border-radius:50%;background:var(--gold);color:var(--bg);display:flex;align-items:center;justify-content:center;font-size:15px;}
+  .toast-t{font-size:13px;font-weight:500;}
+
+  @media(max-width:760px){.sidebar{display:none;}.main{margin-left:0;width:100%;padding:20px;}}
+</style>
+</head>
+<body>
+<div class="layout">
+  <aside class="sidebar">
+    <div class="sb-logo">V<b>E</b>NA<span>Админ-панель</span></div>
+    <nav class="sb-nav">
+      <div class="sb-item active" data-view="dashboard"><span class="ic">▤</span> Сводка</div>
+      <div class="sb-item" data-view="requests"><span class="ic">✦</span> Заявки <span class="badge">3</span></div>
+      <div class="sb-item" data-view="brigades"><span class="ic">⚕</span> Бригады</div>
+      <div class="sb-item" data-view="clients"><span class="ic">◷</span> Клиенты</div>
+      <div class="sb-item" data-view="analyses"><span class="ic">🩺</span> Анализы <span class="badge">2</span></div>
+    </nav>
+    <div class="sb-user">
+      <div class="sb-user-av">🩺</div>
+      <div class="sb-user-info"><b>Соколова Е. А.</b><span>врач · к.м.н.</span></div>
+    </div>
+  </aside>
+
+  <main class="main">
+    <!-- ===== DASHBOARD ===== -->
+    <div class="view active" id="v-dashboard">
+      <div class="topbar">
+        <h1>Сводка <em>за июнь</em></h1>
+        <div class="topbar-actions"><div class="date-pill">📅 Сегодня · 21 июня</div></div>
+      </div>
+      <div class="kpis">
+        <div class="kpi"><div class="kpi-label">Выручка за месяц</div><div class="kpi-val">2,94 млн ₽</div><div class="kpi-delta up">↑ 18% к маю</div></div>
+        <div class="kpi"><div class="kpi-label">Визитов выполнено</div><div class="kpi-val">163</div><div class="kpi-delta up">↑ 22 за неделю</div></div>
+        <div class="kpi"><div class="kpi-label">Загрузка бригад</div><div class="kpi-val">71%</div><div class="kpi-delta up">↑ 6%</div></div>
+        <div class="kpi"><div class="kpi-label">Активных курсов</div><div class="kpi-val">38</div><div class="kpi-delta up">↑ 5</div></div>
+      </div>
+      <div class="grid2">
+        <div class="panel">
+          <div class="panel-hd"><h3>Расписание на сегодня</h3><span class="link" onclick="switchView('requests')">Все заявки →</span></div>
+          <div class="sched-item"><div class="sched-time">09:00</div><div class="sched-body"><h4>Энергия+ · Александр М.</h4><p>Пресненский · медсестра Ольга</p></div><span class="badge-s b-done">выполнен</span></div>
+          <div class="sched-item"><div class="sched-time">12:00</div><div class="sched-body"><h4>Иммунитет · Елена В.</h4><p>Хамовники · медсестра Ирина</p></div><span class="badge-s b-assigned">в пути</span></div>
+          <div class="sched-item"><div class="sched-time">14:30</div><div class="sched-body"><h4>Энергия+ · Александр М.</h4><p>Пресненский · медсестра Ольга</p></div><span class="badge-s b-confirmed">подтверждён</span></div>
+          <div class="sched-item"><div class="sched-time">17:00</div><div class="sched-body"><h4>Красота · Марина К.</h4><p>Арбат · медсестра не назначена</p></div><span class="badge-s b-new">нужна бригада</span></div>
+          <div class="sched-item"><div class="sched-time">19:30</div><div class="sched-body"><h4>Детокс · Сергей П.</h4><p>Тверской · медсестра Анна</p></div><span class="badge-s b-confirmed">подтверждён</span></div>
+        </div>
+        <div class="panel">
+          <div class="panel-hd"><h3>Активность</h3></div>
+          <div class="feed-item"><div class="feed-dot pos"></div><div class="feed-body"><p>Визит выполнен — Александр М.</p><span>10 минут назад</span></div></div>
+          <div class="feed-item"><div class="feed-dot gold"></div><div class="feed-body"><p>Новые анализы на проверку — Александр М.</p><span>25 минут назад</span></div></div>
+          <div class="feed-item"><div class="feed-dot info"></div><div class="feed-body"><p>Новая заявка с лендинга — Марина К.</p><span>1 час назад</span></div></div>
+          <div class="feed-item"><div class="feed-dot gold"></div><div class="feed-body"><p>Оформлен абонемент — Сергей П.</p><span>2 часа назад</span></div></div>
+          <div class="feed-item"><div class="feed-dot pos"></div><div class="feed-body"><p>Курс завершён — Ольга Н. (4/4)</p><span>вчера</span></div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== REQUESTS ===== -->
+    <div class="view" id="v-requests">
+      <div class="topbar">
+        <h1>Заявки</h1>
+        <div class="topbar-actions"><input class="search" placeholder="Поиск по клиенту…"><div class="date-pill">Все статусы</div></div>
+      </div>
+      <div class="panel" style="padding:0;">
+        <table>
+          <thead><tr><th>Клиент</th><th>Программа</th><th>Дата и время</th><th>Район</th><th>Статус</th><th>Бригада</th><th></th></tr></thead>
+          <tbody>
+            <tr><td><span class="cell-strong">Марина К.</span><div class="cell-sub">+7 916 •••• 34</div></td><td>Красота</td><td>21 июня · 17:00</td><td>Арбат</td><td><span class="badge-s b-new">новая</span></td><td class="cell-sub">не назначена</td><td><button class="btn-sm gold" onclick="toast('Бригада назначена')">Назначить</button></td></tr>
+            <tr><td><span class="cell-strong">Сергей П.</span><div class="cell-sub">+7 903 •••• 11</div></td><td>Детокс</td><td>21 июня · 19:30</td><td>Тверской</td><td><span class="badge-s b-confirmed">подтверждён</span></td><td>Анна Л.</td><td><button class="btn-sm" onclick="toast('Открыта карточка визита')">Открыть</button></td></tr>
+            <tr><td><span class="cell-strong">Елена В.</span><div class="cell-sub">+7 925 •••• 87</div></td><td>Иммунитет</td><td>21 июня · 12:00</td><td>Хамовники</td><td><span class="badge-s b-assigned">в пути</span></td><td>Ирина С.</td><td><button class="btn-sm" onclick="toast('Открыта карточка визита')">Открыть</button></td></tr>
+            <tr><td><span class="cell-strong">Александр М.</span><div class="cell-sub">Gold · +7 916 •••• 02</div></td><td>Энергия+</td><td>21 июня · 14:30</td><td>Пресненский</td><td><span class="badge-s b-confirmed">подтверждён</span></td><td>Ольга К.</td><td><button class="btn-sm" onclick="toast('Открыта карточка визита')">Открыть</button></td></tr>
+            <tr><td><span class="cell-strong">Дмитрий Р.</span><div class="cell-sub">+7 999 •••• 45</div></td><td>Drip-day (8 чел)</td><td>23 июня · 11:00</td><td>Москва-Сити</td><td><span class="badge-s b-new">новая</span></td><td class="cell-sub">не назначена</td><td><button class="btn-sm gold" onclick="toast('Бригада назначена')">Назначить</button></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ===== BRIGADES ===== -->
+    <div class="view" id="v-brigades">
+      <div class="topbar">
+        <h1>Бригады <em>на сегодня</em></h1>
+        <div class="topbar-actions"><div class="date-pill">5 на смене · 2 дежурных</div></div>
+      </div>
+      <div class="grid2" style="grid-template-columns:1fr 1fr;">
+        <div class="panel">
+          <div class="panel-hd"><h3>Сейчас на выезде</h3><span class="eyebrow">в реальном времени</span></div>
+          <div class="nurse"><div class="nurse-av">👩‍⚕️</div><div class="nurse-info"><h4>Ирина С.</h4><p>Хамовники · Елена В. · прибытие 12:00</p></div><span class="badge-s b-busy">в пути</span></div>
+          <div class="nurse"><div class="nurse-av">👩‍⚕️</div><div class="nurse-info"><h4>Ольга К.</h4><p>Пресненский · следующий визит 14:30</p></div><span class="badge-s b-active">свободна</span></div>
+        </div>
+        <div class="panel">
+          <div class="panel-hd"><h3>Доступны по районам</h3></div>
+          <div class="nurse"><div class="nurse-av">👩‍⚕️</div><div class="nurse-info"><h4>Анна Л.</h4><p>Центр · Тверской · опыт 6 лет · 4.8★</p></div><span class="badge-s b-active">доступна</span></div>
+          <div class="nurse"><div class="nurse-av">👩‍⚕️</div><div class="nurse-info"><h4>Мария Д.</h4><p>Запад · Кунцево · опыт 9 лет · 4.9★</p></div><span class="badge-s b-active">доступна</span></div>
+          <div class="nurse"><div class="nurse-av">👩‍⚕️</div><div class="nurse-info"><h4>Татьяна В.</h4><p>Юг · дежурная · опыт 5 лет · 4.7★</p></div><span class="badge-s b-pending">дежурит</span></div>
+        </div>
+      </div>
+      <div class="panel">
+        <div class="panel-hd"><h3>Покрытие по округам</h3><span class="eyebrow">резерв 2× к среднесуточной нагрузке</span></div>
+        <table>
+          <thead><tr><th>Округ</th><th>Медсестёр в пуле</th><th>Доступно сегодня</th><th>Визитов запланировано</th><th>Резерв</th></tr></thead>
+          <tbody>
+            <tr><td class="cell-strong">Центр</td><td>4</td><td>2</td><td>3</td><td><span class="badge-s b-active">ок</span></td></tr>
+            <tr><td class="cell-strong">Запад</td><td>3</td><td>2</td><td>1</td><td><span class="badge-s b-active">ок</span></td></tr>
+            <tr><td class="cell-strong">Юг</td><td>2</td><td>1</td><td>1</td><td><span class="badge-s b-pending">впритык</span></td></tr>
+            <tr><td class="cell-strong">Север</td><td>2</td><td>1</td><td>0</td><td><span class="badge-s b-active">ок</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ===== CLIENTS ===== -->
+    <div class="view" id="v-clients">
+      <div class="topbar">
+        <h1>Клиенты</h1>
+        <div class="topbar-actions"><input class="search" placeholder="Поиск…"><div class="date-pill">Всего 124</div></div>
+      </div>
+      <div class="panel" style="padding:0;">
+        <table>
+          <thead><tr><th>Клиент</th><th>Статус</th><th>Курс / абонемент</th><th>Последний визит</th><th>Визитов всего</th><th></th></tr></thead>
+          <tbody>
+            <tr><td><span class="cell-strong">Александр М.</span><div class="cell-sub">с мая 2026</div></td><td><span class="badge-s b-confirmed">Gold</span></td><td>Энергия · 3/4</td><td>14 июня</td><td>4</td><td><button class="btn-sm" onclick="toast('Карточка клиента')">Открыть</button></td></tr>
+            <tr><td><span class="cell-strong">Сергей П.</span><div class="cell-sub">с апреля 2026</div></td><td><span class="badge-s b-active">Абонемент</span></td><td>Абонемент · активен</td><td>18 июня</td><td>11</td><td><button class="btn-sm" onclick="toast('Карточка клиента')">Открыть</button></td></tr>
+            <tr><td><span class="cell-strong">Елена В.</span><div class="cell-sub">с июня 2026</div></td><td><span class="badge-s b-done">Новый</span></td><td>Разовый</td><td>сегодня</td><td>1</td><td><button class="btn-sm" onclick="toast('Карточка клиента')">Открыть</button></td></tr>
+            <tr><td><span class="cell-strong">Марина К.</span><div class="cell-sub">с июня 2026</div></td><td><span class="badge-s b-done">Новый</span></td><td>—</td><td>—</td><td>0</td><td><button class="btn-sm" onclick="toast('Карточка клиента')">Открыть</button></td></tr>
+            <tr><td><span class="cell-strong">Ольга Н.</span><div class="cell-sub">с марта 2026</div></td><td><span class="badge-s b-confirmed">Gold</span></td><td>Красота · 4/4 завершён</td><td>16 июня</td><td>8</td><td><button class="btn-sm" onclick="toast('Карточка клиента')">Открыть</button></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ===== ANALYSES ===== -->
+    <div class="view" id="v-analyses">
+      <div class="topbar">
+        <h1>Анализы <em>на проверке</em></h1>
+        <div class="topbar-actions"><div class="date-pill">2 ждут подтверждения</div></div>
+      </div>
+      <div class="panel" style="padding:0;">
+        <table>
+          <thead><tr><th>Клиент</th><th>Загружено</th><th>Лаборатория</th><th>Показателей</th><th>Статус</th><th></th></tr></thead>
+          <tbody id="analysesTable">
+            <tr><td><span class="cell-strong">Александр М.</span><div class="cell-sub">Gold-клиент</div></td><td>25 минут назад</td><td>ИНВИТРО</td><td>5</td><td><span class="badge-s b-pending">ждёт проверки</span></td><td><button class="btn-sm gold" onclick="openVerify('Александр М.')">Проверить</button></td></tr>
+            <tr><td><span class="cell-strong">Сергей П.</span><div class="cell-sub">Абонемент</div></td><td>2 часа назад</td><td>Гемотест</td><td>7</td><td><span class="badge-s b-pending">ждёт проверки</span></td><td><button class="btn-sm gold" onclick="openVerify('Сергей П.')">Проверить</button></td></tr>
+            <tr><td><span class="cell-strong">Ольга Н.</span><div class="cell-sub">Gold-клиент</div></td><td>вчера</td><td>ИНВИТРО</td><td>6</td><td><span class="badge-s b-done">подтверждено</span></td><td><button class="btn-sm" onclick="toast('Уже подтверждено')">Открыть</button></td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p style="font-size:12px;color:var(--ink-dim);font-style:italic;margin-top:16px;line-height:1.6;">Парсер распознаёт показатели из загруженного клиентом PDF. Врач сверяет значения с оригиналом, при необходимости правит, и подтверждает — только после этого данные появляются в динамике клиента. Это защищает от ошибок распознавания.</p>
+    </div>
+  </main>
+</div>
+
+<!-- VERIFY MODAL -->
+<div class="modal-bg" id="verifyModal">
+  <div class="modal">
+    <button class="modal-close" onclick="closeVerify()">✕</button>
+    <h2 id="verifyTitle">Проверка анализов — Александр М.</h2>
+    <div class="modal-sub">Сверьте распознанные значения с оригиналом PDF. Исправьте, если парсер ошибся, и подтвердите — данные уйдут в динамику клиента.</div>
+    <div class="verify-split">
+      <div class="verify-pdf">
+        <div class="verify-pdf-ic">📄</div>
+        <p>Оригинал PDF от клиента</p>
+        <div class="fname">analiz_invitro_21062026.pdf</div>
+        <p style="margin-top:14px;font-size:12px;color:var(--ink-dim);">(в рабочей версии — просмотр PDF рядом)</p>
+      </div>
+      <div>
+        <div style="font-size:11px;letter-spacing:0.1em;text-transform:uppercase;color:var(--gold);margin-bottom:8px;">Распознано парсером</div>
+        <div class="vrow"><div class="vrow-name">Витамин D, 25-OH <span>нг/мл · норма 30–100</span></div><input value="52"><span class="vrow-status b-active">норма</span></div>
+        <div class="vrow"><div class="vrow-name">Ферритин <span>нг/мл · норма 30–400</span></div><input value="65"><span class="vrow-status b-active">норма</span></div>
+        <div class="vrow"><div class="vrow-name">Витамин B12 <span>пг/мл · норма 200–900</span></div><input value="540"><span class="vrow-status b-active">норма</span></div>
+        <div class="vrow"><div class="vrow-name">Гемоглобин <span>г/л · норма 130–170</span></div><input value="152"><span class="vrow-status b-active">норма</span></div>
+        <div class="vrow"><div class="vrow-name">Железо <span>мкмоль/л · норма 11–28</span></div><input value="18"><span class="vrow-status b-active">норма</span></div>
+        <div style="display:flex;gap:12px;margin-top:24px;">
+          <button class="btn-sm gold" style="flex:1;padding:13px;" onclick="confirmVerify()">Подтвердить и добавить в динамику</button>
+          <button class="btn-sm" style="padding:13px;" onclick="closeVerify()">Отмена</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"><div class="toast-ic">✓</div><div class="toast-t" id="toastT"></div></div>
+
+<script>
+  function switchView(v){
+    document.querySelectorAll('.sb-item').forEach(i=>i.classList.toggle('active', i.dataset.view===v));
+    document.querySelectorAll('.view').forEach(el=>el.classList.remove('active'));
+    document.getElementById('v-'+v).classList.add('active');
+  }
+  document.querySelectorAll('.sb-item').forEach(i=>{
+    i.addEventListener('click', ()=> switchView(i.dataset.view));
+  });
+
+  let toastTimer;
+  function toast(msg){
+    document.getElementById('toastT').textContent=msg;
+    const t=document.getElementById('toast'); t.classList.add('show');
+    clearTimeout(toastTimer); toastTimer=setTimeout(()=>t.classList.remove('show'),2600);
+  }
+
+  function openVerify(name){
+    document.getElementById('verifyTitle').textContent='Проверка анализов — '+name;
+    document.getElementById('verifyModal').classList.add('show');
+  }
+  function closeVerify(){ document.getElementById('verifyModal').classList.remove('show'); }
+  function confirmVerify(){
+    closeVerify();
+    toast('Подтверждено — данные в динамике клиента');
+    // mark first pending row as done
+    const rows=document.querySelectorAll('#analysesTable tr');
+    for(const r of rows){
+      const badge=r.querySelector('.b-pending');
+      if(badge){ badge.className='badge-s b-done'; badge.textContent='подтверждено';
+        const btn=r.querySelector('button'); btn.className='btn-sm'; btn.textContent='Открыть'; btn.setAttribute('onclick',"toast('Уже подтверждено')");
+        break; }
+    }
+    // update sidebar badge
+    const sb=document.querySelector('.sb-item[data-view=analyses] .badge');
+    let n=parseInt(sb.textContent)-1;
+    if(n>0) sb.textContent=n; else sb.remove();
+  }
+  document.getElementById('verifyModal').addEventListener('click',e=>{ if(e.target.id==='verifyModal') closeVerify(); });
+</script>
+</body>
+</html>
