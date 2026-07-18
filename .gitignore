@@ -24,8 +24,7 @@ next-env.d.ts
 # typescript / build
 *.tsbuildinfo
 
-# drizzle
-/drizzle/meta
+# drizzle — миграции и журнал коммитим (нужны для воспроизводимого db:migrate)
 
 # logs
 npm-debug.log*

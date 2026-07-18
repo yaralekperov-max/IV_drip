@@ -28,6 +28,7 @@ function ShellInner({ children }: { children: React.ReactNode }) {
     { href: "/admin/brigades", icon: "⚕", label: "Бригады" },
     { href: "/admin/clients", icon: "◷", label: "Клиенты" },
     { href: "/admin/analyses", icon: "🩺", label: "Анализы", badge: analysesPending },
+    { href: "/admin/biomarkers", icon: "🧬", label: "Справочник" },
   ];
 
   return (

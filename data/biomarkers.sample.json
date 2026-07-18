@@ -1,0 +1,31 @@
+[
+  {
+    "code": "vitamin_d_25oh",
+    "name": "Витамин D, 25-OH",
+    "unit": "нг/мл",
+    "category": "Витамины",
+    "aliases": ["25(OH)D", "25-OH витамин D"],
+    "referenceRanges": [{ "min": 30, "max": 100 }],
+    "sort": 10
+  },
+  {
+    "code": "ferritin",
+    "name": "Ферритин",
+    "unit": "нг/мл",
+    "category": "Обмен железа",
+    "referenceRanges": [
+      { "sex": "female", "min": 13, "max": 150 },
+      { "sex": "male", "min": 30, "max": 400 }
+    ],
+    "sort": 20
+  },
+  {
+    "code": "b12",
+    "name": "Витамин B12",
+    "unit": "пг/мл",
+    "category": "Витамины",
+    "aliases": ["кобаламин"],
+    "referenceRanges": [{ "min": 200, "max": 900 }],
+    "sort": 11
+  }
+]
