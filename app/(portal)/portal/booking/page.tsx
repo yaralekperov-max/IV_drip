@@ -22,8 +22,32 @@ export default function BookingPage() {
   const [modal, setModal] = useState<"consent" | "sent" | null>(null);
   const [consent1, setConsent1] = useState(true);
   const [consent2, setConsent2] = useState(true);
+  const [sending, setSending] = useState(false);
 
   const complete = STEPS.every((s) => sel[s.key]);
+
+  async function sendBooking() {
+    setSending(true);
+    try {
+      await fetch("/api/booking", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          program: sel.prog,
+          date: sel.date,
+          time: sel.time,
+          address: sel.addr,
+          payment: sel.pay,
+          priceRub: PRICING.single,
+        }),
+      });
+    } catch {
+      // Демо: не блокируем подтверждение из-за сети.
+    } finally {
+      setSending(false);
+      setModal("sent");
+    }
+  }
 
   return (
     <>
@@ -117,11 +141,11 @@ export default function BookingPage() {
                   Желаемый слот — оператор подтвердит доступность бригады
                 </div>
                 <button
-                  disabled={!consent1 || !consent2}
-                  onClick={() => setModal("sent")}
+                  disabled={!consent1 || !consent2 || sending}
+                  onClick={sendBooking}
                   className="mt-5 w-full rounded-full bg-gold py-3.5 text-[14px] font-medium text-bg transition-colors hover:bg-gold-light disabled:pointer-events-none disabled:opacity-40"
                 >
-                  Отправить заявку
+                  {sending ? "Отправляем…" : "Отправить заявку"}
                 </button>
               </>
             ) : (

@@ -8,6 +8,28 @@ export default function PaymentsPage() {
   const { state } = usePortalState();
   const toast = useToast();
 
+  async function paySubscription() {
+    try {
+      const res = await fetch("/api/payments/create", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ amountRub: 42000, description: "Абонемент VENA — 4 визита/мес" }),
+      });
+      const data = await res.json();
+      if (data.ok && data.confirmationUrl) {
+        window.location.href = data.confirmationUrl;
+        return;
+      }
+      if (res.status === 503) {
+        toast.show("Онлайн-оплата подключается (ЮKassa ещё не настроена)");
+        return;
+      }
+      toast.show("Не удалось создать платёж");
+    } catch {
+      toast.show("Ошибка сети");
+    }
+  }
+
   if (state === "new") {
     return (
       <>
@@ -64,7 +86,7 @@ export default function PaymentsPage() {
             </div>
             <div className="flex flex-wrap gap-3">
               <button
-                onClick={() => toast.show("Демо: оформление абонемента")}
+                onClick={paySubscription}
                 className="rounded-full bg-gold px-6 py-3 text-[14px] font-medium text-bg transition-colors hover:bg-gold-light"
               >
                 Оформить

@@ -1,10 +1,10 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
+import { createLead } from "@/lib/integrations/amocrm";
 
 /**
- * Приём заявки с лендинга. ЗАГЛУШКА (Этап 2).
- * На Этапе 6 здесь создаётся лид в amoCRM (lib/integrations/amocrm).
- * Пока — валидируем и возвращаем ok, без сохранения ПДн.
+ * Приём заявки с лендинга → создание лида в amoCRM (best-effort).
+ * Если amoCRM не настроен — заявка всё равно принимается (лид пропускается).
  */
 
 const leadSchema = z.object({
@@ -29,8 +29,17 @@ export async function POST(request: Request) {
     );
   }
 
-  // TODO (Этап 6): создать лид в amoCRM. Сейчас заявку не сохраняем.
-  console.info("[lead] новая заявка (заглушка):", { interest: parsed.data.interest });
+  try {
+    await createLead({
+      name: parsed.data.name,
+      phone: parsed.data.phone,
+      interest: parsed.data.interest,
+      source: "landing",
+    });
+  } catch (e) {
+    // Не роняем заявку из-за сбоя CRM — фиксируем и отвечаем клиенту ok.
+    console.error("[lead] amoCRM недоступен:", e);
+  }
 
   return NextResponse.json({ ok: true });
 }

@@ -1,10 +1,9 @@
 /**
- * Модуль «Платежи».
+ * Модуль «Платежи» — ЮKassa (эквайринг). Оплата визита/абонемента:
+ * онлайн / при визите / бонусами. Создание платежа и приём вебхуков.
  *
- * Приём платежей через ЮKassa (эквайринг, чеки, возвраты). Оплата визита:
- * онлайн / при визите / бонусами. История и абонементы — в ЛК.
- *
- * ЗАГЛУШКА (Этап 6). Реализация — при подключении ЮKassa.
+ * Клиент и типы — в ./yookassa. Работает в режиме «skip», пока не заданы ключи.
  */
 
-export {};
+export { createPayment, parseWebhook, isYooKassaConfigured } from "./yookassa";
+export type { CreatePaymentInput, CreatePaymentResult, WebhookEvent } from "./yookassa";
