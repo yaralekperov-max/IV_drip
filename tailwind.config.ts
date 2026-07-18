@@ -38,6 +38,13 @@ const config: Config = {
           DEFAULT: "rgba(201,168,106,0.18)",
           soft: "rgba(242,239,232,0.08)",
         },
+        // Статусные цвета (визиты, анализы)
+        status: {
+          pos: "#7FB88A",
+          neg: "#C97A6A",
+          warn: "#D9B470",
+          info: "#7AA8C9",
+        },
       },
       fontFamily: {
         // Заголовки и цифры
@@ -72,12 +79,17 @@ const config: Config = {
           "0%,100%": { opacity: "0.4" },
           "50%": { opacity: "0.85" },
         },
+        fadein: {
+          from: { opacity: "0", transform: "translateY(8px)" },
+          to: { opacity: "1", transform: "none" },
+        },
       },
       animation: {
         marquee: "marquee 28s linear infinite",
         dripfall: "dripfall 1.9s cubic-bezier(.55,0,.9,1) infinite",
         fluidslosh: "fluidslosh 5s ease-in-out infinite",
         hubpulse: "hubpulse 4.5s ease-in-out infinite",
+        fadein: "fadein 0.4s ease",
       },
     },
   },

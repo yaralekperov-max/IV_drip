@@ -48,12 +48,20 @@ export function Header() {
             </a>
           ))}
         </nav>
-        <a
-          href="#contact"
-          className="rounded-full border border-gold px-6 py-2.5 text-[13.5px] tracking-wide text-gold transition-colors hover:bg-gold hover:text-bg"
-        >
-          Записаться
-        </a>
+        <div className="flex items-center gap-5">
+          <a
+            href="/portal"
+            className="hidden text-[13.5px] text-ink-muted transition-colors hover:text-ink sm:block"
+          >
+            Войти
+          </a>
+          <a
+            href="#contact"
+            className="rounded-full border border-gold px-6 py-2.5 text-[13.5px] tracking-wide text-gold transition-colors hover:bg-gold hover:text-bg"
+          >
+            Записаться
+          </a>
+        </div>
       </div>
     </header>
   );
