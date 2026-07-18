@@ -5,10 +5,13 @@
 @layer base {
   html {
     color-scheme: dark;
+    scroll-behavior: smooth;
   }
 
   body {
     @apply bg-bg font-sans text-ink antialiased;
+    line-height: 1.6;
+    overflow-x: hidden;
   }
 
   h1,
@@ -16,5 +19,51 @@
   h3,
   h4 {
     @apply font-display;
+    font-weight: 400;
+  }
+
+  ::selection {
+    background: theme("colors.gold.DEFAULT");
+    color: theme("colors.bg.DEFAULT");
+  }
+}
+
+@layer components {
+  /* Фоновое свечение (амбиент) */
+  .ambient::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+    background:
+      radial-gradient(ellipse 60% 50% at 50% -5%, rgba(201, 168, 106, 0.1), transparent 70%),
+      radial-gradient(ellipse 40% 40% at 90% 20%, rgba(23, 46, 37, 0.6), transparent 70%);
+  }
+
+  /* Появление при скролле */
+  .reveal {
+    opacity: 0;
+    transform: translateY(28px);
+    transition:
+      opacity 1s cubic-bezier(0.22, 1, 0.36, 1),
+      transform 1s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  .reveal.in {
+    opacity: 1;
+    transform: none;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .reveal {
+      opacity: 1;
+      transform: none;
+      transition: none;
+    }
+    .animate-marquee,
+    .animate-dripfall,
+    .animate-fluidslosh,
+    .animate-hubpulse {
+      animation: none !important;
+    }
   }
 }

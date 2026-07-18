@@ -14,8 +14,14 @@ const config: Config = {
     extend: {
       colors: {
         // Фон и панели
-        bg: "#0B1410",
-        panel: "#13241D",
+        bg: {
+          DEFAULT: "#0B1410",
+          2: "#0F1B16",
+        },
+        panel: {
+          DEFAULT: "#13241D",
+          2: "#172E25",
+        },
         // Золото
         gold: {
           DEFAULT: "#C9A86A",
@@ -25,6 +31,12 @@ const config: Config = {
         ink: {
           DEFAULT: "#F2EFE8", // основной
           muted: "#A8B5AD", // приглушённый
+          dim: "#6E7C73", // самый тусклый
+        },
+        // Линии/границы
+        line: {
+          DEFAULT: "rgba(201,168,106,0.18)",
+          soft: "rgba(242,239,232,0.08)",
         },
       },
       fontFamily: {
@@ -41,6 +53,31 @@ const config: Config = {
         // Мягкие премиум-тени
         soft: "0 10px 40px -12px rgba(0, 0, 0, 0.5)",
         gold: "0 8px 30px -10px rgba(201, 168, 106, 0.35)",
+      },
+      keyframes: {
+        marquee: {
+          to: { transform: "translateX(-50%)" },
+        },
+        dripfall: {
+          "0%": { transform: "translateY(0) scaleY(.6)", opacity: "0" },
+          "12%": { transform: "translateY(0) scaleY(1)", opacity: "1" },
+          "80%": { transform: "translateY(30px) scaleY(1.1)", opacity: "1" },
+          "100%": { transform: "translateY(36px) scaleY(1.4)", opacity: "0" },
+        },
+        fluidslosh: {
+          "0%,100%": { transform: "translateY(0)" },
+          "50%": { transform: "translateY(2px)" },
+        },
+        hubpulse: {
+          "0%,100%": { opacity: "0.4" },
+          "50%": { opacity: "0.85" },
+        },
+      },
+      animation: {
+        marquee: "marquee 28s linear infinite",
+        dripfall: "dripfall 1.9s cubic-bezier(.55,0,.9,1) infinite",
+        fluidslosh: "fluidslosh 5s ease-in-out infinite",
+        hubpulse: "hubpulse 4.5s ease-in-out infinite",
       },
     },
   },
