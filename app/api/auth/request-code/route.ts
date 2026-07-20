@@ -3,6 +3,7 @@ import { z } from "zod";
 import { normalizePhone } from "@/lib/modules/auth/phone";
 import { issueCode } from "@/lib/modules/auth/otp-store";
 import { getSmsSender } from "@/lib/modules/auth/sms";
+import { rateLimit, clientIp } from "@/lib/modules/auth/rate-limit";
 
 const schema = z.object({
   phone: z.string().min(5),
@@ -20,6 +21,18 @@ export async function POST(request: Request) {
   const phone = normalizePhone(parsed.data.phone);
   if (!phone) {
     return NextResponse.json({ ok: false, error: "bad_phone" }, { status: 422 });
+  }
+
+  // Ограничения: не чаще 5 запросов кода за 10 мин с IP и 3 на номер.
+  const ip = clientIp(request);
+  const byIp = rateLimit(`request-code:ip:${ip}`, 5, 600);
+  const byPhone = rateLimit(`request-code:phone:${phone}`, 3, 600);
+  if (!byIp.allowed || !byPhone.allowed) {
+    const retryAfter = Math.max(byIp.retryAfterSec, byPhone.retryAfterSec);
+    return NextResponse.json(
+      { ok: false, error: "rate_limited", retryAfterSec: retryAfter },
+      { status: 429, headers: { "Retry-After": String(retryAfter) } },
+    );
   }
 
   const code = issueCode(phone, parsed.data.name);

@@ -20,7 +20,17 @@ export type SessionData = {
 };
 
 function secret(): string {
-  return process.env.AUTH_SESSION_SECRET || "dev-insecure-secret-change-me";
+  const s = process.env.AUTH_SESSION_SECRET;
+  if (!s) {
+    if (process.env.NODE_ENV === "production") {
+      // Не роняем процесс, но громко предупреждаем: в проде секрет обязателен.
+      console.error(
+        "[auth] ВНИМАНИЕ: AUTH_SESSION_SECRET не задан в production — используется небезопасное значение по умолчанию. Задайте секрет!",
+      );
+    }
+    return "dev-insecure-secret-change-me";
+  }
+  return s;
 }
 
 function base64url(input: Buffer | string): string {

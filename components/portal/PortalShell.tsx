@@ -5,6 +5,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { cn } from "@/lib/utils/cn";
 import { ToastProvider } from "@/components/ui/Toast";
+import { DEMO_MODE } from "@/lib/config/demo";
 import { PortalStateProvider, usePortalState } from "./PortalState";
 
 const NAV = [
@@ -116,7 +117,7 @@ function ShellInner({ userName, children }: { userName?: string; children: React
             V<b className="text-gold">E</b>NA
           </div>
         </div>
-        <DemoStatebar />
+        {DEMO_MODE && <DemoStatebar />}
         {children}
       </main>
     </div>
