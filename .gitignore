@@ -1,0 +1,40 @@
+# dependencies
+/node_modules
+/.pnp
+.pnp.*
+
+# next.js
+/.next/
+/out/
+next-env.d.ts
+
+# production
+/build
+
+# testing
+/coverage
+
+# env — секреты не коммитим (152-ФЗ: доступы к российскому контуру, ключи ЮKassa/amoCRM)
+.env
+.env*.local
+.env.local
+.env.development.local
+.env.production.local
+
+# typescript / build
+*.tsbuildinfo
+
+# drizzle — миграции и журнал коммитим (нужны для воспроизводимого db:migrate)
+
+# logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+*.log
+
+# os / editor
+.DS_Store
+*.pem
+.vscode/*
+!.vscode/extensions.json
+.idea
