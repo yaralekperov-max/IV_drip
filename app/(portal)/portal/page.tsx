@@ -3,6 +3,8 @@
 import Link from "next/link";
 import { usePortalState } from "@/components/portal/PortalState";
 import { PCard, CardHead, Row, ScreenHeader, Eyebrow, PLink } from "@/components/portal/ui";
+import { DoctorNoteItem } from "@/components/portal/DoctorNote";
+import { DOCTOR_NOTES } from "@/lib/content/doctor-notes";
 
 export default function HomePage() {
   const { state } = usePortalState();
@@ -83,6 +85,12 @@ export default function HomePage() {
                 <p className="text-[12.5px] text-ink-dim">ваш постоянный специалист · 4.9★</p>
               </div>
             </Row>
+            <Link
+              href="/portal/track"
+              className="mt-4 block rounded-full bg-gold py-3 text-center text-[14px] font-medium text-bg transition-colors hover:bg-gold-light"
+            >
+              Следить за прибытием
+            </Link>
           </PCard>
 
           <PCard className="border-line bg-gradient-to-br from-panel-2 to-bg-2">
@@ -132,6 +140,18 @@ export default function HomePage() {
                 <p className="text-[12.5px] text-ink-dim">терапевт · к.м.н. · 4.9★</p>
               </div>
             </Row>
+          </PCard>
+
+          <PCard>
+            <CardHead
+              title="Рекомендация врача"
+              action={
+                <Link href="/portal/analyses">
+                  <PLink>Все →</PLink>
+                </Link>
+              }
+            />
+            <DoctorNoteItem note={DOCTOR_NOTES[0]} compact last />
           </PCard>
 
           <PCard>

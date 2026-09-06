@@ -39,11 +39,16 @@ export default function AnalysesPage() {
   const [rows, setRows] = useState(INITIAL);
   const [active, setActive] = useState<Analysis | null>(null);
 
-  function confirm(id: string) {
+  function confirm(id: string, note: string) {
     setRows((prev) => prev.map((r) => (r.id === id ? { ...r, confirmed: true } : r)));
     decAnalysesPending();
     setActive(null);
-    toast.show("Подтверждено — данные в динамике клиента");
+    // TODO (после БД): сохранить рекомендацию в медконтур и отправить уведомление клиенту.
+    toast.show(
+      note.trim()
+        ? "Подтверждено — данные и рекомендация ушли клиенту"
+        : "Подтверждено — данные в динамике клиента",
+    );
   }
 
   return (
@@ -114,9 +119,10 @@ function VerifyModal({
 }: {
   analysis: Analysis;
   onClose: () => void;
-  onConfirm: (id: string) => void;
+  onConfirm: (id: string, note: string) => void;
 }) {
   const [values, setValues] = useState<string[]>(RECOGNIZED.map((m) => m.value));
+  const [note, setNote] = useState("");
 
   return (
     <div
@@ -178,8 +184,25 @@ function VerifyModal({
                 </span>
               </div>
             ))}
-            <div className="mt-6 flex gap-3">
-              <SmallButton gold className="flex-1 py-3" onClick={() => onConfirm(analysis.id)}>
+            {/* рекомендация врача — уйдёт клиенту в ЛК вместе с подтверждением */}
+            <div className="mt-5">
+              <label className="mb-2 block text-[11px] uppercase tracking-[0.1em] text-gold">
+                Рекомендация клиенту (появится в ЛК)
+              </label>
+              <textarea
+                value={note}
+                onChange={(e) => setNote(e.target.value)}
+                rows={3}
+                placeholder="Например: витамин D в норме, ферритин в нижней трети — продолжаем поддержку железа, пересдать через 6–8 недель."
+                className="w-full resize-y rounded-lg border border-line-soft bg-bg-2 px-3 py-2.5 text-[13px] leading-relaxed text-ink outline-none placeholder:text-ink-dim focus:border-gold"
+              />
+              <p className="mt-1.5 text-[11px] italic text-ink-dim">
+                Необязательно. Клиент увидит текст с вашей подписью в разделе «Анализы».
+              </p>
+            </div>
+
+            <div className="mt-5 flex gap-3">
+              <SmallButton gold className="flex-1 py-3" onClick={() => onConfirm(analysis.id, note)}>
                 Подтвердить и добавить в динамику
               </SmallButton>
               <SmallButton className="py-3" onClick={onClose}>

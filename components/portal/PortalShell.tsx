@@ -6,10 +6,12 @@ import { usePathname, useRouter } from "next/navigation";
 import { cn } from "@/lib/utils/cn";
 import { ToastProvider } from "@/components/ui/Toast";
 import { DEMO_MODE } from "@/lib/config/demo";
+import { unreadCount } from "@/lib/content/notifications";
 import { PortalStateProvider, usePortalState } from "./PortalState";
 
-const NAV = [
+const NAV: { href: string; icon: string; label: string; badge?: number }[] = [
   { href: "/portal", icon: "⌂", label: "Главная" },
+  { href: "/portal/notifications", icon: "✦", label: "Уведомления", badge: unreadCount() },
   { href: "/portal/booking", icon: "✚", label: "Записаться" },
   { href: "/portal/visits", icon: "◷", label: "Мои визиты" },
   { href: "/portal/analyses", icon: "🩺", label: "Анализы" },
@@ -79,6 +81,11 @@ function ShellInner({ userName, children }: { userName?: string; children: React
               >
                 <span className="w-[18px] text-center text-[15px]">{item.icon}</span>
                 {item.label}
+                {item.badge ? (
+                  <span className="ml-auto rounded-full bg-gold px-[7px] py-px text-[10px] font-semibold text-bg">
+                    {item.badge}
+                  </span>
+                ) : null}
               </Link>
             );
           })}

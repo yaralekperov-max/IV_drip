@@ -62,7 +62,12 @@ export default function VisitsPage() {
             <h4 className="text-[14px] font-medium text-ink">Энергия+ · 14:30</h4>
             <p className="text-[12.5px] text-ink-dim">Дома · бригада в пути</p>
           </div>
-          <StatusBadge status="assigned">бригада назначена</StatusBadge>
+          <div className="flex flex-col items-end gap-2">
+            <StatusBadge status="assigned">бригада назначена</StatusBadge>
+            <Link href="/portal/track">
+              <PLink>Следить →</PLink>
+            </Link>
+          </div>
         </Row>
         <Row>
           <RowDate d="23" m="июн" />

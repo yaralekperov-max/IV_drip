@@ -4,6 +4,14 @@ import { useState } from "react";
 import { usePortalState } from "@/components/portal/PortalState";
 import { useToast } from "@/components/ui/Toast";
 import { PCard, CardHead, ScreenHeader, EmptyState, StatusBadge, PLink } from "@/components/portal/ui";
+import { TrendChart } from "@/components/portal/TrendChart";
+import { DoctorNoteItem } from "@/components/portal/DoctorNote";
+import { DOCTOR_NOTES } from "@/lib/content/doctor-notes";
+import {
+  BIOMARKER_HISTORY,
+  markerDelta,
+  type MarkerHistory,
+} from "@/lib/content/biomarker-history";
 import { cn } from "@/lib/utils/cn";
 
 type UploadStage = "idle" | "consent" | "parsing" | "recognized" | "review";
@@ -56,10 +64,22 @@ export default function AnalysesPage() {
 
         <UploadHost stage={stage} setStage={setStage} onReviewSent={() => toast.show("Отправлено врачу на проверку")} />
 
-        <Marker name="Витамин D" unit="нг/мл · норма 30–100" delta="↑ +18" was="19" wasDate="12 мая" now="37" nowDate="14 июня" />
-        <Marker name="Ферритин" unit="нг/мл · норма 30–400" delta="↑ +26" was="22" wasDate="12 мая" now="48" nowDate="14 июня" last />
+        {BIOMARKER_HISTORY.map((h, i) => (
+          <Marker key={h.code} history={h} last={i === BIOMARKER_HISTORY.length - 1} />
+        ))}
         <p className="mt-3.5 text-[12px] italic text-ink-dim">
           Показатели в пределах нормы. Интерпретация — за вашим врачом.
+        </p>
+      </PCard>
+
+      <PCard>
+        <CardHead title="Рекомендации врача" />
+        {DOCTOR_NOTES.map((n, i) => (
+          <DoctorNoteItem key={n.id} note={n} last={i === DOCTOR_NOTES.length - 1} />
+        ))}
+        <p className="mt-3.5 text-[12px] italic text-ink-dim">
+          Рекомендации даёт ваш врач по результатам визитов и анализов. Это не замена очной
+          консультации — при ухудшении самочувствия обратитесь к врачу.
         </p>
       </PCard>
     </>
@@ -188,45 +208,52 @@ function UploadHost({
   );
 }
 
-function Marker({
-  name,
-  unit,
-  delta,
-  was,
-  wasDate,
-  now,
-  nowDate,
-  last,
-}: {
-  name: string;
-  unit: string;
-  delta: string;
-  was: string;
-  wasDate: string;
-  now: string;
-  nowDate: string;
-  last?: boolean;
-}) {
+/**
+ * Один биомаркер: заголовок с изменением, график тренда и строка «было → стало».
+ * Строка дублирует значения графика — они доступны без наведения (тултип ничего не «запирает»).
+ */
+function Marker({ history, last }: { history: MarkerHistory; last?: boolean }) {
+  const d = markerDelta(history);
+  const refText =
+    history.refMin !== undefined && history.refMax !== undefined
+      ? `${history.unit} · норма ${history.refMin}–${history.refMax}`
+      : history.unit;
+
   return (
     <div className={cn("py-4", !last && "border-b border-line-soft")}>
       <div className="mb-2.5 flex justify-between">
         <div className="text-[14px] text-ink">
-          {name}
-          <span className="block text-[11.5px] text-ink-dim">{unit}</span>
+          {history.name}
+          <span className="block text-[11.5px] text-ink-dim">{refText}</span>
         </div>
-        <div className="text-[13px] font-medium text-status-pos">{delta}</div>
+        {d && (
+          <div
+            className={cn(
+              "text-[13px] font-medium",
+              d.delta > 0 ? "text-status-pos" : d.delta < 0 ? "text-status-neg" : "text-ink-muted",
+            )}
+          >
+            {d.delta > 0 ? "↑ +" : d.delta < 0 ? "↓ " : ""}
+            {d.delta !== 0 ? d.delta : "без изменений"}
+          </div>
+        )}
       </div>
-      <div className="flex items-center gap-3.5">
-        <div className="flex-1">
-          <div className="text-[11px] uppercase text-ink-dim">Было · {wasDate}</div>
-          <div className="font-display text-[18px] text-ink">{was}</div>
+
+      <TrendChart history={history} />
+
+      {d && (
+        <div className="mt-1 flex items-center gap-3.5">
+          <div className="flex-1">
+            <div className="text-[11px] uppercase text-ink-dim">Было · {d.first.label}</div>
+            <div className="font-display text-[18px] text-ink">{d.first.value}</div>
+          </div>
+          <div className="text-gold">→</div>
+          <div className="flex-1">
+            <div className="text-[11px] uppercase text-ink-dim">Стало · {d.last.label}</div>
+            <div className="font-display text-[18px] text-ink">{d.last.value}</div>
+          </div>
         </div>
-        <div className="text-gold">→</div>
-        <div className="flex-1">
-          <div className="text-[11px] uppercase text-ink-dim">Стало · {nowDate}</div>
-          <div className="font-display text-[18px] text-ink">{now}</div>
-        </div>
-      </div>
+      )}
     </div>
   );
 }

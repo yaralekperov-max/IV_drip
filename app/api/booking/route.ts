@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { getSession } from "@/lib/modules/auth/session";
 import { createLead } from "@/lib/integrations/amocrm";
+import { notify } from "@/lib/modules/notifications";
 
 /**
  * Заявка на визит из ЛК → сделка «на подтверждении» в amoCRM (best-effort).
@@ -44,6 +45,14 @@ export async function POST(request: Request) {
   } catch (e) {
     console.error("[booking] amoCRM недоступен:", e);
   }
+
+  // Уведомление клиенту о приёме заявки (каналы — по настройкам профиля).
+  await notify({
+    event: "visit_confirmed",
+    phone: session.phone,
+    title: "Заявка принята",
+    body: `Заявка на ${d.date}, ${d.time} принята. Оператор подтвердит слот — статус в личном кабинете.`,
+  });
 
   return NextResponse.json({ ok: true, status: "pending" });
 }
