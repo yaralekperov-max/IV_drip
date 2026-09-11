@@ -38,3 +38,7 @@ yarn-error.log*
 .vscode/*
 !.vscode/extensions.json
 .idea
+
+# сгенерированное демо ЛК (пересобирается npm run demo:export)
+portal-demo.html
+_portal-demo.html
